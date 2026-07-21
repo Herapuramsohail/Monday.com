@@ -49,9 +49,9 @@ def _filter_work_orders(work_orders, filters):
         return work_orders
     out = []
     for w in work_orders:
-        if filters.get("workOrderStatus") and filters["workOrderStatus"].lower() not in w.get("executionStatus", "").lower():
+        if filters.get("workOrderStatus") and filters["workOrderStatus"].lower() not in ("all", "") and filters["workOrderStatus"].lower() not in w.get("executionStatus", "").lower():
             continue
-        if filters.get("customer") and filters["customer"].lower() not in w.get("customerNameCode", "").lower():
+        if filters.get("customer") and filters["customer"].lower() not in ("all", "") and filters["customer"].lower() not in w.get("customerNameCode", "").lower():
             continue
         out.append(w)
     return out
