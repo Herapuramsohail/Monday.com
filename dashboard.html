@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -236,7 +236,7 @@
                   <tr v-for="d in deals" :key="d.dealName" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
                     <td class="py-4 px-5 font-bold text-slate-900 dark:text-white">{{ d.dealName }}</td>
                     <td class="py-4 px-5 font-mono text-[10px]">{{ d.clientCode }}</td>
-                    <td class="py-4 px-5">₹{{ d.maskedDealValue.toLocaleString() }}</td>
+                    <td class="py-4 px-5">â‚¹{{ d.maskedDealValue.toLocaleString() }}</td>
                     <td class="py-4 px-5">{{ d.dealStage }}</td>
                     <td class="py-4 px-5">{{ d.sector }}</td>
                     <td class="py-4 px-5">{{ d.closureProbability }}</td>
@@ -277,8 +277,8 @@
                       </span>
                     </td>
                     <td class="py-4 px-5">{{ w.probableEndDate || 'N/A' }}</td>
-                    <td class="py-4 px-5">₹{{ w.amountRupeesInclGST.toLocaleString() }}</td>
-                    <td class="py-4 px-5 text-rose-500">₹{{ w.amountReceivable.toLocaleString() }}</td>
+                    <td class="py-4 px-5">â‚¹{{ w.amountRupeesInclGST.toLocaleString() }}</td>
+                    <td class="py-4 px-5 text-rose-500">â‚¹{{ w.amountReceivable.toLocaleString() }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -446,9 +446,9 @@
         };
 
         const formatCurrency = (val) => {
-          if (!val) return '₹0';
-          if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
-          return `₹${val.toLocaleString('en-IN')}`;
+          if (!val) return 'â‚¹0';
+          if (val >= 10000000) return `â‚¹${(val / 10000000).toFixed(2)} Cr`;
+          return `â‚¹${val.toLocaleString('en-IN')}`;
         };
 
         const loadData = async () => {
@@ -456,7 +456,7 @@
           try {
             const qs = new URLSearchParams(filters.value).toString();
             // Fetch Dashboard KPIs & Charts
-            const dashResp = await fetch(`http://127.0.0.1:8000/dashboard?${qs}`);
+            const dashResp = await fetch(`https://monday-com-iycc.onrender.com/dashboard?${qs}`);
             const dash = await dashResp.json();
             kpis.value = dash.kpis;
             dropdowns.value = {
@@ -466,21 +466,21 @@
             };
 
             // Fetch Deals Funnel
-            const dealsResp = await fetch(`http://127.0.0.1:8000/deals?${qs}`);
+            const dealsResp = await fetch(`https://monday-com-iycc.onrender.com/deals?${qs}`);
             const dData = await dealsResp.json();
             deals.value = dData.deals;
 
             // Fetch Work Orders
-            const woResp = await fetch(`http://127.0.0.1:8000/workorders?${qs}`);
+            const woResp = await fetch(`https://monday-com-iycc.onrender.com/workorders?${qs}`);
             const wData = await woResp.json();
             workOrders.value = wData.workOrders;
 
             // Fetch Data Quality
-            const dqResp = await fetch(`http://127.0.0.1:8000/data-quality`);
+            const dqResp = await fetch(`https://monday-com-iycc.onrender.com/data-quality`);
             qualityReport.value = await dqResp.json();
 
             // Fetch Executive Summary
-            const sumResp = await fetch(`http://127.0.0.1:8000/summary`, { method: 'POST' });
+            const sumResp = await fetch(`https://monday-com-iycc.onrender.com/summary`, { method: 'POST' });
             summaryData.value = await sumResp.json();
 
             // Render Charts
@@ -556,7 +556,7 @@
           chatInput.value = "";
 
           try {
-            const resp = await fetch('http://127.0.0.1:8000/chat', {
+            const resp = await fetch('https://monday-com-iycc.onrender.com/chat', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ message: userMsg, filters: filters.value })
@@ -575,7 +575,7 @@
         const triggerSearch = async () => {
           if (!searchQuery.value.trim()) return;
           try {
-            const resp = await fetch(`http://127.0.0.1:8000/search?query=${searchQuery.value}`);
+            const resp = await fetch(`https://monday-com-iycc.onrender.com/search?query=${searchQuery.value}`);
             const data = await resp.json();
             deals.value = data.deals;
             workOrders.value = data.workOrders;
@@ -615,3 +615,4 @@
   </script>
 </body>
 </html>
+
