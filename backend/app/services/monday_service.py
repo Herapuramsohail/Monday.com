@@ -107,13 +107,27 @@ class MondayService:
         except Exception as e:
             return False, f"Network connection failed: {str(e)}", {}
 
+    def _find_csv(self, filename: str, default_path: str) -> str:
+        candidates = [
+            default_path,
+            os.path.join(os.getcwd(), "data", filename),
+            os.path.join(os.getcwd(), filename),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", filename),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", filename),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", filename),
+        ]
+        for path in candidates:
+            if os.path.exists(path):
+                return path
+        return default_path
+
     def fetch_deals_data(self, api_token: str = "", board_id: str = "") -> List[Dict[str, Any]]:
         if api_token and board_id:
             api_rows = self.query_monday_api(api_token, board_id)
             if api_rows:
                 return cleaner_service.clean_deals_data(api_rows)
 
-        csv_path = settings.DEAL_FUNNEL_CSV
+        csv_path = self._find_csv("deal_funnel.csv", settings.DEAL_FUNNEL_CSV)
         raw_rows = []
         if os.path.exists(csv_path):
             with open(csv_path, mode='r', encoding='utf-8-sig', errors='replace') as f:
@@ -131,7 +145,7 @@ class MondayService:
                     mapped_rows.append([r.get(k, '') for k in r.keys()])
                 return cleaner_service.clean_work_orders_data(mapped_rows)
 
-        csv_path = settings.WORK_ORDER_CSV
+        csv_path = self._find_csv("work_order_tracker.csv", settings.WORK_ORDER_CSV)
         raw_lines = []
         if os.path.exists(csv_path):
             with open(csv_path, mode='r', encoding='utf-8-sig', errors='replace') as f:
