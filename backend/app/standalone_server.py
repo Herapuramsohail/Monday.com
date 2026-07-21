@@ -562,10 +562,12 @@ class BIRequestHandler(BaseHTTPRequestHandler):
 # Entry point
 # ---------------------------------------------------------------------------
 
-def run_server(port=8000):
+def run_server(port=None):
+    if port is None:
+        port = int(os.environ.get("PORT", 8000))
     server_address = ('', port)
     httpd = HTTPServer(server_address, BIRequestHandler)
-    sys.stdout.write(f"BI Server running on http://127.0.0.1:{port}\n")
+    sys.stdout.write(f"BI Server running on port {port}\n")
     sys.stdout.flush()
     try:
         httpd.serve_forever()
