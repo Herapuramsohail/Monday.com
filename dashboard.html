@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monday.com AI Business Intelligence Agent</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Vue.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: "var(--background)",
+            foreground: "var(--foreground)",
+            border: "var(--border)",
+            primary: {
+              DEFAULT: "#00c6ff",
+              dark: "#0072ff"
+            },
+            secondary: {
+              DEFAULT: "#f35588",
+              dark: "#a83f60"
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --background: #f8fafc;
+      --foreground: #0f172a;
+      --border: #e2e8f0;
+    }
+    .dark {
+      --background: #0b0f19;
+      --foreground: #f8fafc;
+      --border: #1e293b;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <div id="app" class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 h-screen transition-all duration-300">
+      <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+        <div class="bg-gradient-to-tr from-cyan-400 to-blue-600 p-2 rounded-xl text-white shadow-lg">
+          <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-white tracking-wide text-md">Monday.com BI</h1>
+          <p class="text-[10px] text-slate-500 font-semibold">AI Intelligence Agent</p>
+        </div>
+      </div>
+
+      <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        <button v-for="tab in tabs" :key="tab.name" @click="activeTab = tab.id"
+          :class="['w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200',
+            activeTab === tab.id 
+              ? 'bg-gradient-to-r from-cyan-500/25 to-blue-500/10 text-cyan-400 border-l-4 border-cyan-400 pl-3' 
+              : 'hover:bg-slate-800/60 hover:text-white text-slate-400'
+          ]">
+          <i :data-lucide="tab.icon" class="w-4 h-4"></i>
+          <span>{{ tab.name }}</span>
+        </button>
+      </nav>
+
+      <div class="p-4 border-t border-slate-800 bg-slate-950/40 text-center">
+        <p class="text-[10px] text-slate-600">v1.0.0 Stable Build</p>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Header -->
+      <header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex items-center justify-between px-6 transition-colors duration-200">
+        <!-- Search bar trigger -->
+        <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-slate-400 w-80">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <input type="text" v-model="searchQuery" @input="triggerSearch" placeholder="Global search..." class="bg-transparent border-0 outline-none text-xs w-full text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div class="flex items-center gap-4">
+          <!-- Connection pill -->
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold border bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>Local BI Server Connected</span>
+          </div>
+
+          <!-- Theme Toggle -->
+          <button @click="toggleDarkMode" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900">
+            <i :data-lucide="darkMode ? 'sun' : 'moon'" class="w-4 h-4"></i>
+          </button>
+
+          <!-- User profile -->
+          <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-4 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-500 text-white flex items-center justify-center font-bold text-xs shadow-md">
+              S
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">Sohail</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content viewport -->
+      <main class="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+        <!-- Loading state -->
+        <div v-if="loading" class="flex items-center justify-center h-[70vh]">
+          <div class="text-center">
+            <div class="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-xs text-slate-500 font-semibold">Loading business intelligence datasets...</p>
+          </div>
+        </div>
+
+        <!-- Tab contents -->
+        <div v-else class="space-y-6">
+          <!-- Tab 1: Dashboard -->
+          <div v-if="activeTab === 'dashboard'" class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold tracking-tight text-slate-800 dark:text-white">BI Dashboard</h2>
+                <p class="text-xs text-slate-500">Live operational data cleaning & modeling dashboard</p>
+              </div>
+              <button @click="loadData" class="flex items-center gap-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-50">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Refresh Data</span>
+              </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-wrap gap-4 shadow-sm">
+              <div class="flex flex-col gap-1 flex-1 min-w-[150px]">
+                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Sector</label>
+                <select v-model="filters.sector" @change="loadData" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs font-semibold">
+                  <option value="all">All Sectors</option>
+                  <option v-for="s in dropdowns.sectors" :key="s" :value="s">{{ s }}</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1 flex-1 min-w-[150px]">
+                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Deal Stage</label>
+                <select v-model="filters.dealStage" @change="loadData" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs font-semibold">
+                  <option value="all">All Stages</option>
+                  <option v-for="st in dropdowns.dealStages" :key="st" :value="st">{{ st }}</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1 flex-1 min-w-[150px]">
+                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Salesperson</label>
+                <select v-model="filters.salesperson" @change="loadData" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs font-semibold">
+                  <option value="all">All Salespersons</option>
+                  <option v-for="sp in dropdowns.salespersons" :key="sp" :value="sp">{{ sp }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Funnel Deals</span>
+                <p class="text-xl font-bold text-slate-800 dark:text-slate-200">{{ kpis.totalDeals }}</p>
+                <p class="text-[9px] text-slate-500 font-semibold mt-1">{{ kpis.openDeals }} Open | {{ kpis.closedDeals }} Closed</p>
+              </div>
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pipeline Value</span>
+                <p class="text-xl font-bold text-slate-800 dark:text-slate-200">{{ formatCurrency(kpis.totalPipelineValue) }}</p>
+                <p class="text-[9px] text-slate-500 font-semibold mt-1">Avg Deal: {{ formatCurrency(kpis.averageDealSize) }}</p>
+              </div>
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Expected Revenue</span>
+                <p class="text-xl font-bold text-slate-800 dark:text-slate-200">{{ formatCurrency(kpis.expectedRevenue) }}</p>
+                <p class="text-[9px] text-slate-500 font-semibold mt-1">Weighted conversion: {{ kpis.conversionRate }}%</p>
+              </div>
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Active Work Orders</span>
+                <p class="text-xl font-bold text-slate-800 dark:text-slate-200">{{ kpis.activeWorkOrders }}</p>
+                <p class="text-[9px] text-slate-500 font-semibold mt-1">{{ kpis.completedWorkOrders }} Delivered</p>
+              </div>
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Delayed Projects</span>
+                <p class="text-xl font-bold text-rose-500">{{ kpis.delayedWorkOrders }}</p>
+                <p class="text-[9px] text-slate-500 font-semibold mt-1">At-risk delivery schedules</p>
+              </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <h3 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase mb-4">Revenue by Sector</h3>
+                <div class="h-64"><canvas id="sectorChart"></canvas></div>
+              </div>
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+                <h3 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase mb-4">Deal Pipeline Stage Distribution</h3>
+                <div class="h-64"><canvas id="stageChart"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Deals Funnel -->
+          <div v-if="activeTab === 'deals'" class="space-y-6">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Deals Funnel Board</h2>
+            <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 font-bold uppercase text-slate-400">
+                    <th class="py-4 px-5">Deal Name</th>
+                    <th class="py-4 px-5">Client Code</th>
+                    <th class="py-4 px-5">Value</th>
+                    <th class="py-4 px-5">Stage</th>
+                    <th class="py-4 px-5">Sector</th>
+                    <th class="py-4 px-5">Closure Probability</th>
+                    <th class="py-4 px-5">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                  <tr v-for="d in deals" :key="d.dealName" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
+                    <td class="py-4 px-5 font-bold text-slate-900 dark:text-white">{{ d.dealName }}</td>
+                    <td class="py-4 px-5 font-mono text-[10px]">{{ d.clientCode }}</td>
+                    <td class="py-4 px-5">₹{{ d.maskedDealValue.toLocaleString() }}</td>
+                    <td class="py-4 px-5">{{ d.dealStage }}</td>
+                    <td class="py-4 px-5">{{ d.sector }}</td>
+                    <td class="py-4 px-5">{{ d.closureProbability }}</td>
+                    <td class="py-4 px-5">{{ d.dealStatus }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 3: Work Orders -->
+          <div v-if="activeTab === 'work-orders'" class="space-y-6">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Work Order Tracker</h2>
+            <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 font-bold uppercase text-slate-400">
+                    <th class="py-4 px-5">Serial # / Deal</th>
+                    <th class="py-4 px-5">Customer Code</th>
+                    <th class="py-4 px-5">Nature of Work</th>
+                    <th class="py-4 px-5">Status</th>
+                    <th class="py-4 px-5">Delivery Target</th>
+                    <th class="py-4 px-5">Value (Masked)</th>
+                    <th class="py-4 px-5">Receivables</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                  <tr v-for="w in workOrders" :key="w.serialNo" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
+                    <td class="py-4 px-5">
+                      <span class="bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded font-mono text-[9px] text-slate-500 mb-0.5 block w-fit">{{ w.serialNo }}</span>
+                      <p class="font-bold text-slate-850 dark:text-white">{{ w.dealName }}</p>
+                    </td>
+                    <td class="py-4 px-5 font-mono text-[10px]">{{ w.customerNameCode }}</td>
+                    <td class="py-4 px-5">{{ w.natureOfWork }}</td>
+                    <td class="py-4 px-5">
+                      <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold', w.isDelayed ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500']">
+                        {{ w.executionStatus }} {{ w.isDelayed ? '(Delayed)' : '' }}
+                      </span>
+                    </td>
+                    <td class="py-4 px-5">{{ w.probableEndDate || 'N/A' }}</td>
+                    <td class="py-4 px-5">₹{{ w.amountRupeesInclGST.toLocaleString() }}</td>
+                    <td class="py-4 px-5 text-rose-500">₹{{ w.amountReceivable.toLocaleString() }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 4: AI Assistant -->
+          <div v-if="activeTab === 'ai-assistant'" class="flex flex-col h-[75vh] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 flex items-center gap-3">
+              <i data-lucide="message-square" class="text-cyan-500 w-5 h-5"></i>
+              <div>
+                <h3 class="text-xs font-bold">AI Strategy Assistant</h3>
+                <p class="text-[9px] text-slate-500">Retrieves live data via analytical sandbox tool calls</p>
+              </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 space-y-4">
+              <div v-for="(msg, idx) in chatMessages" :key="idx" :class="['flex gap-3', msg.sender === 'user' ? 'justify-end' : '']">
+                <div :class="['max-w-[75%] rounded-2xl px-4 py-3 text-xs leading-relaxed', 
+                  msg.sender === 'user' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-semibold' : 'bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                ]">
+                  <div class="whitespace-pre-wrap">{{ msg.text }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/20">
+              <form @submit.prevent="sendChat" class="flex gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2 shadow-inner">
+                <input type="text" v-model="chatInput" placeholder="Ask AI about pipeline, delayed work orders, forecasting..." class="flex-1 bg-transparent border-0 outline-none text-xs px-2">
+                <button type="submit" class="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 px-4 py-2 rounded-lg text-xs font-bold">Send</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Tab 5: Executive Summary -->
+          <div v-if="activeTab === 'summary'" class="space-y-6">
+            <div class="flex justify-between items-center">
+              <h2 class="text-xl font-bold">Executive Business Summary</h2>
+              <button @click="exportPDF" class="bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold">Export to PDF</button>
+            </div>
+
+            <div v-if="summaryData" class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-sm space-y-6">
+              <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                <h1 class="text-2xl font-extrabold text-slate-800 dark:text-white">Executive BI Summary Report</h1>
+                <p class="text-xs text-slate-400 mt-1">Generated: {{ summaryData.generatedAt }}</p>
+              </div>
+
+              <div class="grid grid-cols-3 gap-6 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl">
+                <div>
+                  <span class="text-[9px] font-bold text-slate-400 block mb-1">Total Pipeline</span>
+                  <p class="text-lg font-black text-cyan-500">{{ summaryData.totalPipelineFormatted }}</p>
+                </div>
+                <div>
+                  <span class="text-[9px] font-bold text-slate-400 block mb-1">Active Deals</span>
+                  <p class="text-lg font-black text-indigo-500">{{ summaryData.activeDealsCount }}</p>
+                </div>
+                <div>
+                  <span class="text-[9px] font-bold text-slate-400 block mb-1">Expected Revenue (Qtr)</span>
+                  <p class="text-lg font-black text-emerald-500">{{ summaryData.expectedRevenueQuarterFormatted }}</p>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <h4 class="text-xs font-bold text-rose-500 uppercase tracking-wider">Major Business Risks</h4>
+                <ul class="space-y-1.5 list-disc pl-5 text-xs text-slate-650 dark:text-slate-350">
+                  <li v-for="risk in summaryData.majorBusinessRisks" :key="risk">{{ risk }}</li>
+                </ul>
+              </div>
+
+              <div class="space-y-3">
+                <h4 class="text-xs font-bold text-emerald-500 uppercase tracking-wider">Recommended Action Items</h4>
+                <ul class="space-y-1.5 list-decimal pl-5 text-xs text-slate-650 dark:text-slate-350">
+                  <li v-for="act in summaryData.recommendedActions" :key="act">{{ act }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 6: Data Quality -->
+          <div v-if="activeTab === 'data-quality'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 space-y-6">
+              <div class="p-6 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 text-center">
+                <span class="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Data Confidence Score</span>
+                <p class="text-5xl font-black mt-2 text-emerald-500">{{ qualityReport.confidenceScore }}%</p>
+              </div>
+              
+              <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 space-y-3 text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-900">
+                  <span class="text-slate-500">Missing Values Imputed</span>
+                  <span class="font-bold">{{ qualityReport.missingValuesCount }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-900">
+                  <span class="text-slate-500">Deduplicated Companies</span>
+                  <span class="font-bold">{{ qualityReport.duplicateRecordsCount }}</span>
+                </div>
+                <div class="flex justify-between py-1">
+                  <span class="text-slate-500">Dates Standardized</span>
+                  <span class="font-bold">{{ qualityReport.invalidDatesFixed }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 h-[70vh] flex flex-col">
+              <h3 class="text-xs font-bold uppercase text-slate-400 mb-4">Cleaner Operations Log</h3>
+              <div class="flex-1 overflow-y-auto space-y-3">
+                <div v-for="(log, idx) in qualityReport.logs" :key="idx" class="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-900 text-xs">
+                  <div class="flex justify-between mb-1">
+                    <span class="font-bold text-slate-800 dark:text-white">{{ log.operation }}</span>
+                    <span class="text-[9px] text-cyan-500 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full">Field: {{ log.field }}</span>
+                  </div>
+                  <p class="text-slate-500 text-[11px]">{{ log.details }}</p>
+                  <p class="text-[9px] text-slate-400 mt-1">Affected: {{ log.affectedCount }} | {{ log.timestamp }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const activeTab = ref('dashboard');
+        const darkMode = ref(false);
+        const loading = ref(true);
+        const searchQuery = ref("");
+        
+        const tabs = [
+          { id: 'dashboard', name: 'Dashboard', icon: 'layout-dashboard' },
+          { id: 'deals', name: 'Deals Funnel', icon: 'briefcase' },
+          { id: 'work-orders', name: 'Work Orders', icon: 'file-spreadsheet' },
+          { id: 'ai-assistant', name: 'AI Assistant', icon: 'message-square' },
+          { id: 'summary', name: 'Executive Summary', icon: 'file-text' },
+          { id: 'data-quality', name: 'Data Quality', icon: 'shield-alert' }
+        ];
+
+        const filters = ref({
+          sector: 'all',
+          dealStage: 'all',
+          salesperson: 'all'
+        });
+
+        const kpis = ref({});
+        const dropdowns = ref({ sectors: [], dealStages: [], salespersons: [] });
+        const deals = ref([]);
+        const workOrders = ref([]);
+        const chatMessages = ref([
+          { sender: 'assistant', text: "Hello! I am your AI Business Intelligence Agent. Ask me questions about pipeline or delayed projects." }
+        ]);
+        const chatInput = ref("");
+        const summaryData = ref(null);
+        const qualityReport = ref({});
+
+        let sectorChart = null;
+        let stageChart = null;
+
+        const toggleDarkMode = () => {
+          darkMode.value = !darkMode.value;
+          document.documentElement.classList.toggle('dark', darkMode.value);
+        };
+
+        const formatCurrency = (val) => {
+          if (!val) return '₹0';
+          if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
+          return `₹${val.toLocaleString('en-IN')}`;
+        };
+
+        const loadData = async () => {
+          loading.value = true;
+          try {
+            const qs = new URLSearchParams(filters.value).toString();
+            // Fetch Dashboard KPIs & Charts
+            const dashResp = await fetch(`http://127.0.0.1:8000/dashboard?${qs}`);
+            const dash = await dashResp.json();
+            kpis.value = dash.kpis;
+            dropdowns.value = {
+              sectors: dash.sectors,
+              dealStages: dash.dealStages,
+              salespersons: dash.salespersons
+            };
+
+            // Fetch Deals Funnel
+            const dealsResp = await fetch(`http://127.0.0.1:8000/deals?${qs}`);
+            const dData = await dealsResp.json();
+            deals.value = dData.deals;
+
+            // Fetch Work Orders
+            const woResp = await fetch(`http://127.0.0.1:8000/workorders?${qs}`);
+            const wData = await woResp.json();
+            workOrders.value = wData.workOrders;
+
+            // Fetch Data Quality
+            const dqResp = await fetch(`http://127.0.0.1:8000/data-quality`);
+            qualityReport.value = await dqResp.json();
+
+            // Fetch Executive Summary
+            const sumResp = await fetch(`http://127.0.0.1:8000/summary`, { method: 'POST' });
+            summaryData.value = await sumResp.json();
+
+            // Render Charts
+            await nextTick();
+            renderCharts(dash.charts);
+
+          } catch (err) {
+            console.error("Error loading data:", err);
+          } finally {
+            loading.value = false;
+            setTimeout(() => {
+              lucide.createIcons();
+            }, 100);
+          }
+        };
+
+        const renderCharts = (chartsData) => {
+          // Sector Chart
+          const ctxSec = document.getElementById('sectorChart');
+          if (ctxSec) {
+            if (sectorChart) sectorChart.destroy();
+            sectorChart = new Chart(ctxSec, {
+              type: 'bar',
+              data: {
+                labels: chartsData.revenueBySector.slice(0, 5).map(x => x.name),
+                datasets: [{
+                  label: 'Pipeline (Rupees)',
+                  data: chartsData.revenueBySector.slice(0, 5).map(x => x.value),
+                  backgroundColor: 'rgba(0, 198, 255, 0.7)',
+                  borderColor: 'rgba(0, 198, 255, 1)',
+                  borderWidth: 1,
+                  borderRadius: 6
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } }
+              }
+            });
+          }
+
+          // Stage Chart
+          const ctxStg = document.getElementById('stageChart');
+          if (ctxStg) {
+            if (stageChart) stageChart.destroy();
+            stageChart = new Chart(ctxStg, {
+              type: 'horizontalBar' in Chart ? 'horizontalBar' : 'bar',
+              data: {
+                labels: chartsData.pipelineByStage.slice(0, 5).map(x => x.name),
+                datasets: [{
+                  label: 'Value',
+                  data: chartsData.pipelineByStage.slice(0, 5).map(x => x.value),
+                  backgroundColor: 'rgba(243, 85, 136, 0.7)',
+                  borderColor: 'rgba(243, 85, 136, 1)',
+                  borderWidth: 1,
+                  borderRadius: 6
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y'
+              }
+            });
+          }
+        };
+
+        const sendChat = async () => {
+          if (!chatInput.value.trim()) return;
+          const userMsg = chatInput.value;
+          chatMessages.value.push({ sender: 'user', text: userMsg });
+          chatInput.value = "";
+
+          try {
+            const resp = await fetch('http://127.0.0.1:8000/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: userMsg, filters: filters.value })
+            });
+            const res = await resp.json();
+            chatMessages.value.push({ sender: 'assistant', text: res.reply });
+          } catch (err) {
+            chatMessages.value.push({ sender: 'assistant', text: "Error talking to BI engine server." });
+          }
+        };
+
+        const exportPDF = () => {
+          window.print();
+        };
+
+        const triggerSearch = async () => {
+          if (!searchQuery.value.trim()) return;
+          try {
+            const resp = await fetch(`http://127.0.0.1:8000/search?query=${searchQuery.value}`);
+            const data = await resp.json();
+            deals.value = data.deals;
+            workOrders.value = data.workOrders;
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        onMounted(() => {
+          loadData();
+        });
+
+        return {
+          activeTab,
+          tabs,
+          darkMode,
+          loading,
+          toggleDarkMode,
+          kpis,
+          dropdowns,
+          filters,
+          deals,
+          workOrders,
+          chatMessages,
+          chatInput,
+          sendChat,
+          summaryData,
+          qualityReport,
+          loadData,
+          formatCurrency,
+          exportPDF,
+          searchQuery,
+          triggerSearch
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
