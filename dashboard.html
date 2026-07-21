@@ -236,7 +236,7 @@
                   <tr v-for="d in deals" :key="d.dealName" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/40">
                     <td class="py-4 px-5 font-bold text-slate-900 dark:text-white">{{ d.dealName }}</td>
                     <td class="py-4 px-5 font-mono text-[10px]">{{ d.clientCode }}</td>
-                    <td class="py-4 px-5">â‚¹{{ d.maskedDealValue.toLocaleString() }}</td>
+                    <td class="py-4 px-5">Rs. {{ d.maskedDealValue.toLocaleString() }}</td>
                     <td class="py-4 px-5">{{ d.dealStage }}</td>
                     <td class="py-4 px-5">{{ d.sector }}</td>
                     <td class="py-4 px-5">{{ d.closureProbability }}</td>
@@ -277,8 +277,8 @@
                       </span>
                     </td>
                     <td class="py-4 px-5">{{ w.probableEndDate || 'N/A' }}</td>
-                    <td class="py-4 px-5">â‚¹{{ w.amountRupeesInclGST.toLocaleString() }}</td>
-                    <td class="py-4 px-5 text-rose-500">â‚¹{{ w.amountReceivable.toLocaleString() }}</td>
+                    <td class="py-4 px-5">Rs. {{ w.amountRupeesInclGST.toLocaleString() }}</td>
+                    <td class="py-4 px-5 text-rose-500">Rs. {{ w.amountReceivable.toLocaleString() }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -446,9 +446,9 @@
         };
 
         const formatCurrency = (val) => {
-          if (!val) return 'â‚¹0';
-          if (val >= 10000000) return `â‚¹${(val / 10000000).toFixed(2)} Cr`;
-          return `â‚¹${val.toLocaleString('en-IN')}`;
+          if (!val) return 'Rs. 0';
+          if (val >= 10000000) return `Rs. ${(val / 10000000).toFixed(2)} Cr`;
+          return `Rs. ${val.toLocaleString('en-IN')}`;
         };
 
         const loadData = async () => {
