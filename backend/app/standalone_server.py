@@ -27,11 +27,11 @@ def _filter_deals(deals, filters):
         return deals
     out = []
     for d in deals:
-        if filters.get("sector") and filters["sector"].lower() not in d.get("sector", "").lower():
+        if filters.get("sector") and filters["sector"].lower() not in ("all", "") and filters["sector"].lower() not in d.get("sector", "").lower():
             continue
-        if filters.get("dealStage") and filters["dealStage"].lower() not in d.get("dealStage", "").lower():
+        if filters.get("dealStage") and filters["dealStage"].lower() not in ("all", "") and filters["dealStage"].lower() not in d.get("dealStage", "").lower():
             continue
-        if filters.get("salesperson") and filters["salesperson"].lower() not in d.get("ownerCode", "").lower():
+        if filters.get("salesperson") and filters["salesperson"].lower() not in ("all", "") and filters["salesperson"].lower() not in d.get("ownerCode", "").lower():
             continue
         if filters.get("startDate"):
             if d.get("expectedCloseDate", "") < filters["startDate"]:

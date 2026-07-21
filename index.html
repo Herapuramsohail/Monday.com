@@ -505,10 +505,10 @@
             sectorChart = new Chart(ctxSec, {
               type: 'bar',
               data: {
-                labels: chartsData.revenueBySector.slice(0, 5).map(x => x.name),
+                labels: chartsData.sectorBreakdown.slice(0, 5).map(x => x.sector || x.name || x.stage),
                 datasets: [{
                   label: 'Pipeline (Rupees)',
-                  data: chartsData.revenueBySector.slice(0, 5).map(x => x.value),
+                  data: chartsData.sectorBreakdown.slice(0, 5).map(x => x.value),
                   backgroundColor: 'rgba(0, 198, 255, 0.7)',
                   borderColor: 'rgba(0, 198, 255, 1)',
                   borderWidth: 1,
@@ -530,7 +530,7 @@
             stageChart = new Chart(ctxStg, {
               type: 'horizontalBar' in Chart ? 'horizontalBar' : 'bar',
               data: {
-                labels: chartsData.pipelineByStage.slice(0, 5).map(x => x.name),
+                labels: chartsData.pipelineByStage.slice(0, 5).map(x => x.sector || x.name || x.stage),
                 datasets: [{
                   label: 'Value',
                   data: chartsData.pipelineByStage.slice(0, 5).map(x => x.value),
@@ -615,4 +615,4 @@
   </script>
 </body>
 </html>
-
+
